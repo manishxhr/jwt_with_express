@@ -1,5 +1,7 @@
 const express= require("express");
 const bcrypt=require("bcrypt");
+const crypto = require("crypto");
+const { v4: uuidv4 } = require("uuid");
 const db=require("./db");
 const jwt= require("jsonwebtoken");
 require("dotenv").config();
@@ -52,26 +54,16 @@ const token= jwt.sign(
     },
     process.env.JWT_SECRET,
      {
-        expiresIn: process.env.JWT_EXPIRES_IN || "1h"
+        expiresIn: process.env.JWT_EXPIRES_IN || "15m"
      }
 )
-// return res.status(200).json({
-        //     message: "Login successful",
-        //     token: token,
-        //     // header:token.HEADER,
-        //     user: {
-        //         id: row[0].id,
-        //         name: row[0].name,
-        //         email: row[0].email
-        //     }
-        // });
-        //generate refresh token
+
     const refreshToken= crypto.randomBytes(64).toString("hex");
     const familyId= uuidv4(); // generate family ID for the refresh token
-    const tokenhash= await bcrypt.hash(refreshToken,12);
+    const tokenhash= await crypto.createHash("sha256").update(refreshToken).digest("hex");
     const tokenExpiry= new Date(Date.now() + 7*24*60*60*1000); // 7 days from now
 
-    await db.execute("insert into refresh_tokens (user_id, refresh_tokens, token_hash, family_id, expired_at) VALUES (?, ?, ?, ?, ?)",
+    await db.execute("insert into refresh_tokens (user_id, refresh_tokens, token_hash, family_id, expires_at) VALUES (?, ?, ?, ?, ?)",
         [row[0].id,refreshToken,tokenhash,familyId,tokenExpiry]);
 
     return res.status(200).json({
@@ -85,7 +77,66 @@ const token= jwt.sign(
         }
     });
 
+})
 
+//refresh token route
+router.post("/refresh",async(req,res)=>{
+    const refreshToken=req.body.refreshToken;
+    if(!refreshToken){
+        return res.status(400).json({
+            message:"refresh token is required"
+        })
+    }
+    const tokenhash= crypto.createHash("sha256").update(refreshToken).digest("hex");
+    const [row]= await db.execute("select * from refresh_tokens where token_hash = ?",[tokenhash]);
+    if(row.length==0){
+        return res.status(401).json({
+            message:"invalid refresh token"
+        })
+    }
+    const tokenExpiry= new Date(row[0].expires_at);
+    if(tokenExpiry<new Date()){
+        return res.status(401).json({
+            message:"refresh token expired"
+        })
+    }
+    const storedToken= row[0];
+    if(storedToken.revoked_at!==null){
+        await db.execute("update refresh_tokens set revoked_at = ? where family_id = ?",[new Date(),storedToken.family_id]);
+        return res.status(401).json({
+            message:"refresh token revoked"
+        })
+    }
+    //generate new JWT
+    const [userRow]= await db.execute("select * from users where id = ?",[row[0].user_id]);
+    if(userRow.length==0){
+        return res.status(404).json({
+            message:"user not found"
+        })
+    }
+    const token= jwt.sign(
+        {
+            id: userRow[0].id,
+            email: userRow[0].email
+        },
+        process.env.JWT_SECRET,
+         {
+            expiresIn: process.env.JWT_EXPIRES_IN || "15m"
+         }
+    )
+    const refreshTokenNew= crypto.randomBytes(64).toString("hex");
+    const tokenhashNew= crypto.createHash("sha256").update(refreshTokenNew).digest("hex");
+    const tokenExpiryNew= new Date(Date.now() + 7*24*60*60*1000); // 7 days from now
+
+    await db.execute("insert into refresh_tokens (user_id, refresh_tokens, token_hash, family_id, expires_at) VALUES (?, ?, ?, ?, ?)",
+        [userRow[0].id,refreshTokenNew,tokenhashNew,storedToken.family_id,tokenExpiryNew]);
+
+    await db.execute("update refresh_tokens set revoked_at = ? where id = ?",[new Date(),storedToken.id]);  
+    return res.status(200).json({
+        message:"token refreshed successfully",
+        token: token,
+        refreshToken: refreshTokenNew
+    })          
 
 })
 
