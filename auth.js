@@ -55,16 +55,16 @@ const token= jwt.sign(
         expiresIn: process.env.JWT_EXPIRES_IN || "1h"
      }
 )
-return res.status(200).json({
-            message: "Login successful",
-            token: token,
-            // header:token.HEADER,
-            user: {
-                id: row[0].id,
-                name: row[0].name,
-                email: row[0].email
-            }
-        });
+// return res.status(200).json({
+        //     message: "Login successful",
+        //     token: token,
+        //     // header:token.HEADER,
+        //     user: {
+        //         id: row[0].id,
+        //         name: row[0].name,
+        //         email: row[0].email
+        //     }
+        // });
         //generate refresh token
     const refreshToken= crypto.randomBytes(64).toString("hex");
     const familyId= uuidv4(); // generate family ID for the refresh token
@@ -84,7 +84,7 @@ return res.status(200).json({
             email: row[0].email
         }
     });
-    
+
 
 
 })
