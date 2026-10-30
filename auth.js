@@ -58,17 +58,36 @@ const token= jwt.sign(
 return res.status(200).json({
             message: "Login successful",
             token: token,
+            // header:token.HEADER,
             user: {
                 id: row[0].id,
                 name: row[0].name,
                 email: row[0].email
             }
         });
+        //generate refresh token
+    const refreshToken= crypto.randomBytes(64).toString("hex");
+    const familyId= uuidv4(); // generate family ID for the refresh token
+    const tokenhash= await bcrypt.hash(refreshToken,12);
+    const tokenExpiry= new Date(Date.now() + 7*24*60*60*1000); // 7 days from now
+
+    await db.execute("insert into refresh_tokens (user_id, refresh_tokens, token_hash, family_id, expired_at) VALUES (?, ?, ?, ?, ?)",
+        [row[0].id,refreshToken,tokenhash,familyId,tokenExpiry]);
+
+    return res.status(200).json({
+        message: "Login successful",
+        token: token,
+        refreshToken: refreshToken,
+        user: {
+            id: row[0].id,
+            name: row[0].name,
+            email: row[0].email
+        }
+    });
     
 
 
 })
-
 
 
 module.exports= router;
