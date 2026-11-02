@@ -76,7 +76,6 @@ const token= jwt.sign(
             email: row[0].email
         }
     });
-
 })
 
 //refresh token route
@@ -137,6 +136,34 @@ router.post("/refresh",async(req,res)=>{
         token: token,
         refreshToken: refreshTokenNew
     })          
+
+})
+
+router.post("/logout",async(req,res)=>{
+    const refreshToken=req.body.refreshToken;
+    if(!refreshToken){
+        return res.status(400).json({
+            message:"refresh token is required"
+        })
+    }
+    const tokenhash= crypto.createHash("sha256").update(refreshToken).digest("hex");
+    const [row]= await db.execute("select * from refresh_tokens where token_hash = ?",[tokenhash]);
+    if(row.length==0){
+        return res.status(401).json({
+            message:"invalid refresh token"
+        })
+    }
+    const storedToken= row[0];
+    if(storedToken.revoked_at!==null){
+        return res.status(401).json({
+            message:"refresh token already revoked"
+        })
+    }
+    await db.execute("update refresh_tokens set revoked_at = ? where family_id = ?",[new Date(),storedToken.family_id]);
+    return res.status(200).json({
+        message:"logout successful"
+    })
+    
 
 })
 
