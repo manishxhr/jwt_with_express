@@ -1,9 +1,11 @@
-const express= require("express");
+const express = require("express");
+const cors = require("cors");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const authRoutes = require("./auth");
 
-const app= express();
+const app = express();
+app.use(cors());
 app.use(express.json());
 
 // Mount authentication routes
