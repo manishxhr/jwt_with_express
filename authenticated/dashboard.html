@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Dashboard</h1>
+    <p>Welcome to your dashboard! Here you can manage your account and access various features.</p>
+    <p id="tokenDiv" class="message"></p>
+    <p id="refreshTokenDiv" class="message2"></p>
+
+<script>
+
+    const token= localStorage.getItem("token");
+    const refreshToken= localStorage.getItem("refreshToken");
+
+    const tokenDiv = document.getElementById("tokenDiv");
+    const refreshTokenDiv = document.getElementById("refreshTokenDiv");
+
+    tokenDiv.textContent = `Token: ${token}`;
+    refreshTokenDiv.textContent = `Refresh Token: ${refreshToken}`;
+
+</script>
+    
+</body>
+</html>
+

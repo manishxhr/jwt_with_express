@@ -98,6 +98,11 @@
                 messageDiv.textContent = "Login successful! Redirecting...";
                 messageDiv.style.color = "#38a169";
                 console.log("Login response:", data);
+                setTimeout(() => {
+                    window.location.href = "./../authenticated/dashboard.html"; // Redirect to dashboard or home page
+                }, 1000);
+                // window.location.href = "./../authenticated/dashboard.html"; // Redirect to dashboard or home page
+
 
             } catch (error) {
                 messageDiv.textContent = "An error occurred. Please try again.";

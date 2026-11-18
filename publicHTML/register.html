@@ -1,0 +1,116 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Auth System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <main class="auth-container">
+        <section class="auth-card">
+            <div class="brand">
+                <div class="brand-icon">A</div>
+                <span>AuthSystem</span>
+            </div>
+            <div class="auth-heading">
+                <h1>Create an account</h1>
+                <p>Sign up to get started with your account.</p>
+            </div>
+            <form id="registerForm">
+                <p id="message" class="message"></p>
+
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input
+                        type="text"
+                        id="name"
+                        placeholder="Enter your name"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        placeholder="you@example.com"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter your password"
+                    >
+                </div>
+
+
+                <button type="submit" id="registerBtn">
+                    Create account
+                </button>
+
+            </form>
+
+            <p class="auth-footer">
+                Already have an account?
+                <a href="login.html">Sign in</a>
+            </p>
+
+        </section>
+    </main>
+
+    <script>
+
+        const registerForm = document.getElementById("registerForm");
+        const messageDiv = document.getElementById("message");
+        registerForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const name= document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+             messageDiv.textContent = "";
+             messageDiv.style.color = "";
+
+            try {
+                 const apiHost = window.location.hostname || "localhost";
+                const response = await fetch(`http://${apiHost}:2000/auth/register`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({name, email, password }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageDiv.textContent = data.message;
+                    messageDiv.classList.remove("error");
+                    messageDiv.classList.add("success");
+                    // Redirect to login page after successful registration
+                    setTimeout(() => {
+                        window.location.href = "index.html";
+                    }, 2000);
+                } else {
+                    messageDiv.textContent = data.message || "Registration failed.";
+                    messageDiv.classList.remove("success");
+                    messageDiv.classList.add("error");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                messageDiv.textContent = "An error occurred. Please try again.";
+                messageDiv.classList.remove("success");
+                messageDiv.classList.add("error");
+            }
+        });
+    </script>
+    <!-- <script src="js/auth.js"></script> -->
+</body>
+</html>

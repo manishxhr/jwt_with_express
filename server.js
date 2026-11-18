@@ -31,6 +31,10 @@ app.use((req,res,next)=>{
     }
 });
 
+app.get("/dashboardjs",(req,res)=>{
+    res.sendFile(__dirname+"/publicHTML/dashboard.html");
+})
+
 
 app.get("/lib",(req,res)=>{
     res.send({
