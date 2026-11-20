@@ -66,10 +66,13 @@ const token= jwt.sign(
     await db.execute("insert into refresh_tokens (user_id, refresh_tokens, token_hash, family_id, expires_at) VALUES (?, ?, ?, ?, ?)",
         [row[0].id,refreshToken,tokenhash,familyId,tokenExpiry]);
 
+        res.cookie("token", token, { httpOnly: true, secure: false });
+        res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: false });
+
     return res.status(200).json({
         message: "Login successful",
-        token: token,
-        refreshToken: refreshToken,
+        // token: token,
+        // refreshToken: refreshToken,
         user: {
             id: row[0].id,
             name: row[0].name,
@@ -140,7 +143,8 @@ router.post("/refresh",async(req,res)=>{
 })
 
 router.post("/logout",async(req,res)=>{
-    const refreshToken=req.body.refreshToken;
+    // const refreshToken=req.body.refreshToken;
+    const refreshToken=req.cookies.refreshToken;
     if(!refreshToken){
         return res.status(400).json({
             message:"refresh token is required"
@@ -160,6 +164,8 @@ router.post("/logout",async(req,res)=>{
         })
     }
     await db.execute("update refresh_tokens set revoked_at = ? where family_id = ?",[new Date(),storedToken.family_id]);
+    res.clearCookie("token");
+    res.clearCookie("refreshToken");
     return res.status(200).json({
         message:"logout successful"
     })

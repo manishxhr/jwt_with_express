@@ -11,16 +11,44 @@
     <p id="tokenDiv" class="message"></p>
     <p id="refreshTokenDiv" class="message2"></p>
 
+    <button id="logoutBtn">Logout</button>
+
 <script>
+    const logoutBtn = document.getElementById("logoutBtn");
+    logoutBtn.addEventListener("click", async () => {
+        try {
+            const response = await fetch("/auth/logout", {   
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+            if (response.ok) {
+                // Clear tokens from localStorage
+                // localStorage.removeItem("token");
+                // localStorage.removeItem("refreshToken");
 
-    const token= localStorage.getItem("token");
-    const refreshToken= localStorage.getItem("refreshToken");
+                // Redirect to login page
+                window.location.href = "/";
+            } else {
+                console.error("Logout failed:", response.statusText);
+            }
+        } catch (error) {
+            console.error("Error occurred while logging out:", error);
+        }   
+    });
 
-    const tokenDiv = document.getElementById("tokenDiv");
-    const refreshTokenDiv = document.getElementById("refreshTokenDiv");
+    // const token= localStorage.getItem("token");
+    // const refreshToken= localStorage.getItem("refreshToken");
 
-    tokenDiv.textContent = `Token: ${token}`;
-    refreshTokenDiv.textContent = `Refresh Token: ${refreshToken}`;
+    // const token= req.cookies.token;
+    // const refreshToken= req.cookies.refreshToken;
+
+    // const tokenDiv = document.getElementById("tokenDiv");
+    // const refreshTokenDiv = document.getElementById("refreshTokenDiv");
+
+    // tokenDiv.textContent = `Token: ${token}`;
+    // refreshTokenDiv.textContent = `Refresh Token: ${refreshToken}`;
 
 </script>
     
