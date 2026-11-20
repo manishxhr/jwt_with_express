@@ -55,9 +55,10 @@ app.use((req,res,next)=>{
      console.log("middleware called");
      const token= req.cookies.token;
         if(!token){
-            return res.status(401).json({
-                message:"Authorization header missing"
-            })
+            // return res.status(401).json({
+            //     message:"Authorization header missing"
+            // })
+            return res.redirect("/");
         }
 
         //  const token = authHeader.split(" ")[1];
